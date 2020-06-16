@@ -54,11 +54,15 @@
    :will-enter    (fn [app {orgnr :fake/org-nr}]
                     (let [ident [:fake/org-nr orgnr]]
                       (dr/route-deferred ident
-                                         #(do (merge/merge-component! app JhOrgDashboard {:fake/org-nr orgnr
-                                                                                          :fake/details-router (comp/get-ident JhOrgDetailsRouter {})}) ; fake a load
+                                         #(do (merge/merge-component! app JhOrgDashboard {:fake/org-nr orgnr})
+                                                                                           ; fake a load
                                               (comp/transact! app [(dr/target-ready {:target ident})])))))
-   #_#_:pre-merge (fn [{:keys [data-tree]}]
-                    (assoc data-tree :fake/details-router (comp/get-ident JhOrgDetailsRouter {})))
+   :pre-merge (fn [{:keys [data-tree current-normalized state-map]}]
+                ;; Add the required link to the router into the component's data
+                (merge (comp/get-initial-state JhOrgDashboard)
+                       data-tree)
+                #_(assoc data-tree
+                    :fake/details-router (comp/get-initial-state JhOrgDetailsRouter {})))
    :route-segment ["jh-org-dashboard" :fake/org-nr]}
   (dom/div
     (dom/p (str "JhOrgDashboard for the fake org nr. " org-nr))
