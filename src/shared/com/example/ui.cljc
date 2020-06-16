@@ -5,6 +5,7 @@
                [com.fulcrologic.semantic-ui.modules.dropdown.ui-dropdown-item :refer [ui-dropdown-item]]])
     #?(:clj  [com.fulcrologic.fulcro.dom-server :as dom :refer [div label input]]
        :cljs [com.fulcrologic.fulcro.dom :as dom :refer [div label input]])
+    [clojure.core.async :as async]
     [com.example.ui.account-forms :refer [AccountForm AccountList]]
     [com.example.ui.invoice-forms :refer [InvoiceForm InvoiceList AccountInvoices]]
     [com.example.ui.item-forms :refer [ItemForm InventoryReport]]
@@ -54,7 +55,10 @@
    :will-enter    (fn [app {orgnr :fake/org-nr}]
                     (let [ident [:fake/org-nr orgnr]]
                       (dr/route-deferred ident
-                                         #(do (merge/merge-component! app JhOrgDashboard {:fake/org-nr orgnr})
+                                         #(do (async/go
+                                                ;; Fake a load that takes a few seconds:
+                                                (async/<! (async/timeout 15000))
+                                                (merge/merge-component! app JhOrgDashboard {:fake/org-nr orgnr}))
                                                                                            ; fake a load
                                               (comp/transact! app [(dr/target-ready {:target ident})])))))
    :pre-merge (fn [{:keys [data-tree current-normalized state-map]}]
