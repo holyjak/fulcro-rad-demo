@@ -8,6 +8,8 @@ While it works to click through the UI to arrive to a particular view, when I tr
 
 === Current problem
 
+I am not yet able to replicate the problem with UI + UISM x router getting out of sync.
+
 ==== Facts
 
 == Code structure

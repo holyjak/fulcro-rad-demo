@@ -53,7 +53,7 @@
                       (if immediate?
                         (dr/route-immediate ident)
                         (dr/route-deferred ident
-                                           #(comp/transact! app [(simulated-load {:target ident :delay-ms 10})])))))}
+                                           #(comp/transact! app [(simulated-load {:target ident :delay-ms 4000})])))))}
   (dom/div
     (dom/h3 "Stuff about accounts")
     (dom/p "Select the desired kind of details: "
