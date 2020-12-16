@@ -50,7 +50,7 @@
                                              ;; Simulate a delay
                                              (let [delay-ms 10]
                                                #?(:cljs (js/setTimeout
-                                                          #(comp/transact! app [(dr/target-ready {:target ident})])
+                                                          #(comp/transact! app [(dr/target-ready {:target ident :debug/src "Accounts will-enter deferred" :debug/time (js/Date.)})])
                                                           delay-ms))))))))}
   (dom/div
     (dom/h3 "Stuff about accounts")
