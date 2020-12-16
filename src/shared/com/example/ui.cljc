@@ -39,9 +39,11 @@
    :ident         (fn [] [:component/id ::Accounts])
    :initial-state {:acc/router {}}
    :route-segment ["accounts"]
-   :will-enter    (fn [app params]
-                    (let [ident [:component/id ::Accounts]]
-                      (if false
+   :will-enter    (fn [app _]
+                    (let [immediate? false
+                          ident [:component/id ::Accounts]]
+                      (log/info "Accounts routing is " (if immediate? "immediate" "deferred"))
+                      (if immediate?
                         (dr/route-immediate ident)
                         (dr/route-deferred ident
                                            (fn simulate-load []

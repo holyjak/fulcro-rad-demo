@@ -18,6 +18,11 @@ The cause is 99% surely the newly added deferred `:will-enter` in `Accounts`.
 
 When you go to http://localhost:3000/ and click _Accounts_ then _accounts_, you will see the expected account list.
 
+#### Facts
+
+1. Wen I switch the routing in `Accounts` to immediate, it works (i.e. inside its `:will-enter`: `(fn [app _] (let [immediate? true ...`)
+2. Nonsurprisingly, http://localhost:3000/accounts/default also exhibits the problem
+
 ## Code structure
 
 The code is based on RAD demo but the UI has been simplified and a new level of routing with `dr/deferred` has been added between the MainRouter and the AccountList report:
