@@ -15,6 +15,7 @@
     [com.fulcrologic.fulcro.application :as app]
     [com.fulcrologic.fulcro.components :as comp :refer [defsc]]
     [com.fulcrologic.fulcro.dom.html-entities :as ent]
+    [com.fulcrologic.fulcro.mutations :as m]
     [com.fulcrologic.fulcro.routing.dynamic-routing :as dr :refer [defrouter]]
     [com.fulcrologic.rad.authorization :as auth]
     [com.fulcrologic.rad.form :as form]
@@ -34,6 +35,12 @@
 
 (def ui-accounts-details-router (comp/factory AccountsDetailsRouter))
 
+(m/defmutation simulated-load [{:keys [delay-ms target]}]
+  (action [{:keys [app]}]
+          #?(:cljs (js/setTimeout
+                     #(comp/transact! app [(dr/target-ready {:target target})])
+                     delay-ms))))
+
 (defsc Accounts [this {:acc/keys [router]}]
   {:query         [{:acc/router (comp/get-query AccountsDetailsRouter)}]
    :ident         (fn [] [:component/id ::Accounts])
@@ -46,12 +53,7 @@
                       (if immediate?
                         (dr/route-immediate ident)
                         (dr/route-deferred ident
-                                           (fn simulate-load []
-                                             ;; Simulate a delay
-                                             (let [delay-ms 10]
-                                               #?(:cljs (js/setTimeout
-                                                          #(comp/transact! app [(dr/target-ready {:target ident :debug/src "Accounts will-enter deferred" :debug/time (js/Date.)})])
-                                                          delay-ms))))))))}
+                                           #(comp/transact! app [(simulated-load {:target ident :delay-ms 10})])))))}
   (dom/div
     (dom/h3 "Stuff about accounts")
     (dom/p "Select the desired kind of details: "

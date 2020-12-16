@@ -8,36 +8,7 @@ While it works to click through the UI to arrive to a particular view, when I tr
 
 === Current problem
 
-The issue in the commit `Issue 1: Broken reload on accounts/accounts` is:
-
-Going to the URL http://localhost:3000/accounts/accounts?_rp_=WyJeICJd& is broken - it will display "Welcome to the Demo. .." with a loading indicator, forever, instead of the AccountList.In the browser Console it logs:
-
-> ERROR dr/target-ready! was called but there was no router waiting for the target listed:  [:component/id :com.example.ui/Accounts] This could mean you sent one ident, and indicated ready on another.
-
-The cause is 99% surely the newly added deferred `:will-enter` in `Accounts`.
-
-When you go to http://localhost:3000/ and click _Accounts_ then _accounts_, you will see the expected account list.
-
 ==== Facts
-
-1. Wen I switch the routing in `Accounts` to immediate, it works (i.e. inside its `:will-enter`: `(fn [app _] (let [immediate? true ...`)
-2. Nonsurprisingly, http://localhost:3000/accounts/default also exhibits the problem
-3. Transactions (selection; oldest first):
-.. SM(BEGIN) MainRouter with `:path-segment []
-.. SM(BEGIN) MainRouter with `:path-segment ["landing-page"] <- due to `dr/change-route!` in `init`
-.. `client/fix-route`
-.. `dr/target-ready` for Accounts <- WHY ???
-.. SM(BEGIN) MainRouter route! to ["accounts"] <- due to `hist5/restore-route!` in `fix-route`
-.. `client/ui-ready` <- from tx in `fix-route`
-4. The app state just before the dr/target-ready tx is:
-* dr/id MainRouter: current-route=LandingPage, alt0=Accounts, no alt1 ?!, no pending-route
-* uism/asm-id MainRouter: active-state=routed, local-storage target=LandingPage
-* => that explains the error but why do I have this state and not a pending /accounts route?!
-* somehow, there is SM(BEGIN) MainRouter with `:path-segment ["landing-page"]` and only after the failed dr/target-redy there is SM(MainRouter) route! to :path-segment ["accounts"]
-5. Order of events
-.. In `client/init` we `(dr/change-route! app ["landing-page"])` - that explains why the router UISM begins with that
-.. After auth check, in `fix-route`, we call `hist5/restore-route!` which causes the `:route! ["accounts"]`
-.. However I do not understand why the `dr/target-ready` happens _before_ we even tried to route to Accounts.
 
 == Code structure
 
