@@ -22,6 +22,34 @@
     [com.fulcrologic.rad.routing :as rroute]
     [taoensso.timbre :as log]))
 
+(defsc AccountsDetailDefault [this props]
+  {:query         ['*]
+   :ident         (fn [] [:component/id ::AccountsDetailDefault])
+   :initial-state {}
+   :route-segment ["default"]}
+  (dom/div "AccountsDetailDefault: Some details about accounts..."))
+
+(defrouter AccountsDetailsRouter [_ _]
+  {:router-targets [AccountsDetailDefault AccountList]})
+
+(def ui-accounts-details-router (comp/factory AccountsDetailsRouter))
+
+(defsc Accounts [this {:acc/keys [router]}]
+  {:query         [{:acc/router (comp/get-query AccountsDetailsRouter)}]
+   :ident         (fn [] [:component/id ::Accounts])
+   :initial-state {:acc/router {}}
+   :route-segment ["accounts"]}
+  (dom/div
+    (dom/h3 "Stuff about accounts")
+    (dom/p "Select the desired kind of details: "
+           (dom/a {:onClick (fn [] (rroute/route-to! this AccountsDetailDefault {}))} "default")
+           " (AccountsDetailDefault)"
+           " / "
+           (dom/a {:onClick (fn [] (rroute/route-to! this AccountList {}))} "accounts")
+           " (AccountList)")
+    (div {:style {:border "1px dashed grey" :padding "0.3em"}}
+      (ui-accounts-details-router router))))
+
 (defsc LandingPage [this props]
   {:query         ['*]
    :ident         (fn [] [:component/id ::LandingPage])
@@ -32,10 +60,7 @@
 ;; This will just be a normal router...but there can be many of them.
 (defrouter MainRouter [this {:keys [current-state route-factory route-props]}]
   {:always-render-body? true
-   :router-targets      [LandingPage ItemForm InvoiceForm InvoiceList AccountList AccountForm AccountInvoices
-                         sales-report/SalesReport InventoryReport
-                         sales-report/RealSalesReport
-                         dashboard/Dashboard]}
+   :router-targets      [LandingPage Accounts]}
   ;; Normal Fulcro code to show a loader on slow route change (assuming Semantic UI here, should
   ;; be generalized for RAD so UI-specific code isn't necessary)
   (dom/div
@@ -63,27 +88,10 @@
         username   (some-> authorization :local :account/name)]
     (dom/div
       (div :.ui.top.menu
-        (div :.ui.item "Demo")
-        (when logged-in?
-          #?(:cljs
-             (comp/fragment
-               (ui-dropdown {:className "item" :text "Account"}
-                 (ui-dropdown-menu {}
-                   (ui-dropdown-item {:onClick (fn [] (rroute/route-to! this AccountList {}))} "View All")
-                   (ui-dropdown-item {:onClick (fn [] (form/create! this AccountForm))} "New")))
-               (ui-dropdown {:className "item" :text "Inventory"}
-                 (ui-dropdown-menu {}
-                   (ui-dropdown-item {:onClick (fn [] (rroute/route-to! this InventoryReport {}))} "View All")
-                   (ui-dropdown-item {:onClick (fn [] (form/create! this ItemForm))} "New")))
-               (ui-dropdown {:className "item" :text "Invoices"}
-                 (ui-dropdown-menu {}
-                   (ui-dropdown-item {:onClick (fn [] (rroute/route-to! this InvoiceList {}))} "View All")
-                   (ui-dropdown-item {:onClick (fn [] (form/create! this InvoiceForm))} "New")
-                   (ui-dropdown-item {:onClick (fn [] (rroute/route-to! this AccountInvoices {:account/id (new-uuid 101)}))} "Invoices for Account 101")))
-               (ui-dropdown {:className "item" :text "Reports"}
-                 (ui-dropdown-menu {}
-                   (ui-dropdown-item {:onClick (fn [] (rroute/route-to! this dashboard/Dashboard {}))} "Dashboard")
-                   (ui-dropdown-item {:onClick (fn [] (rroute/route-to! this sales-report/RealSalesReport {}))} "Sales Report"))))))
+        (div :.ui.item
+             (dom/a {:onClick (fn [] (rroute/route-to! this LandingPage {}))} "Demo"))
+        (div :.ui.item
+             (dom/a {:onClick (fn [] (rroute/route-to! this AccountsDetailDefault {}))} "Accounts"))
         (div :.right.menu
           (div :.item
             (div :.ui.tiny.loader {:classes [(when busy? "active")]})

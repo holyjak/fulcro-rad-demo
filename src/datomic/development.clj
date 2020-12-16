@@ -93,3 +93,5 @@
 
 (def reset #'restart)
 
+(comment
+  (start))
