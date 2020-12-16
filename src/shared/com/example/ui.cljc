@@ -15,7 +15,7 @@
     [com.fulcrologic.fulcro.application :as app]
     [com.fulcrologic.fulcro.components :as comp :refer [defsc]]
     [com.fulcrologic.fulcro.dom.html-entities :as ent]
-    [com.fulcrologic.fulcro.routing.dynamic-routing :refer [defrouter]]
+    [com.fulcrologic.fulcro.routing.dynamic-routing :as dr :refer [defrouter]]
     [com.fulcrologic.rad.authorization :as auth]
     [com.fulcrologic.rad.form :as form]
     [com.fulcrologic.rad.ids :refer [new-uuid]]
@@ -38,7 +38,18 @@
   {:query         [{:acc/router (comp/get-query AccountsDetailsRouter)}]
    :ident         (fn [] [:component/id ::Accounts])
    :initial-state {:acc/router {}}
-   :route-segment ["accounts"]}
+   :route-segment ["accounts"]
+   :will-enter    (fn [app params]
+                    (let [ident [:component/id ::Accounts]]
+                      (if false
+                        (dr/route-immediate ident)
+                        (dr/route-deferred ident
+                                           (fn simulate-load []
+                                             ;; Simulate a delay
+                                             (let [delay-ms 10]
+                                               #?(:cljs (js/setTimeout
+                                                          #(comp/transact! app [(dr/target-ready {:target ident})])
+                                                          delay-ms))))))))}
   (dom/div
     (dom/h3 "Stuff about accounts")
     (dom/p "Select the desired kind of details: "
@@ -76,15 +87,16 @@
 
 (defsc Root [this {::auth/keys [authorization]
                    ::app/keys  [active-remotes]
-                   :keys       [authenticator router]}]
+                   :keys       [authenticator router ui/ready?]}]
   {:query         [{:authenticator (comp/get-query Authenticator)}
                    {:router (comp/get-query MainRouter)}
                    ::app/active-remotes
-                   ::auth/authorization]
+                   ::auth/authorization :ui/ready?]
    :initial-state {:router        {}
-                   :authenticator {}}}
+                   :authenticator {}
+                   :ui/ready?     false}}
   (let [logged-in? (= :success (some-> authorization :local ::auth/status))
-        busy?      (seq active-remotes)
+        busy?      (or (seq active-remotes) (not ready?))
         username   (some-> authorization :local :account/name)]
     (dom/div
       (div :.ui.top.menu
@@ -109,9 +121,10 @@
             (div :.ui.item
               (dom/button :.ui.primary.button {:onClick #(auth/authenticate! this :local nil)}
                 "Login")))))
-      (div :.ui.container.segment
-        (ui-authenticator authenticator)
-        (ui-main-router router)))))
+      (when ready?
+        (div :.ui.container.segment
+             (ui-authenticator authenticator)
+             (ui-main-router router))))))
 
 (def ui-root (comp/factory Root))
 

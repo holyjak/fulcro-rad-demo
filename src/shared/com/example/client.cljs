@@ -22,6 +22,11 @@
 (defonce stats-accumulator
   (tufte/add-accumulating-handler! {:ns-pattern "*"}))
 
+(m/defmutation ui-ready
+  [_]
+  (action [{:keys [state]}]
+          (swap! state assoc :ui/ready? true)))
+
 (m/defmutation fix-route
   "Mutation. Called after auth startup. Looks at the session. If the user is not logged in, it triggers authentication"
   [_]
@@ -29,7 +34,8 @@
     (let [logged-in (auth/verified-authorities app)]
       (if (empty? logged-in)
         (routing/route-to! app ui/LandingPage {})
-        (hist5/restore-route! app ui/LandingPage {})))))
+        (hist5/restore-route! app ui/LandingPage {}))
+      (comp/transact! app [(ui-ready)]))))
 
 (defn setup-RAD [app]
   (rad-app/install-ui-controls! app sui/all-controls)
@@ -59,9 +65,9 @@
   (auth/start! app [LoginForm] {:after-session-check `fix-route})
   (app/mount! app Root "app" {:initialize-state? false}))
 
-(comment
+(comment)
 
-  )
+
 
 (defonce performance-stats (tufte/add-accumulating-handler! {}))
 
