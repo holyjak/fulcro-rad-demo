@@ -22,6 +22,11 @@ When you go to http://localhost:3000/ and click _Accounts_ then _accounts_, you 
 
 1. Wen I switch the routing in `Accounts` to immediate, it works (i.e. inside its `:will-enter`: `(fn [app _] (let [immediate? true ...`)
 2. Nonsurprisingly, http://localhost:3000/accounts/default also exhibits the problem
+3. The app state just before the dr/target-ready tx is:
+   * dr/id MainRouter: current-route=LandingPage, alt0=Accounts, no alt1 ?!, no pending-route
+   * uism/asm-id MainRouter: active-state=routed, local-storage target=LandingPage
+   * => that explains the error but why do I have this state and not a pending /accounts route?!
+   * somehow, there is SM(BEGIN) MainRouter with `:path-segment ["landing-page"]` and only after the failed dr/target-redy there is SM(MainRouter) route! to :path-segment ["accounts"]
 
 ## Code structure
 
