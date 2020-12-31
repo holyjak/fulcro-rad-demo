@@ -86,6 +86,8 @@
    ro/row-pk              invoice/id
    ro/columns             [invoice/id invoice/date account/name invoice/total]
 
+   ;; BEWARE: Load :category/all-categories manually or go to Inventory - View All to load the data first
+   ro/query-inclusions    [{[:category/id #uuid "ffffffff-ffff-ffff-ffff-000000001000"] [:category/label]}]
    ro/row-query-inclusion [:account/id]
 
    ro/column-headings     {:invoice/id   "Invoice Number"
@@ -110,7 +112,10 @@
                            :account/name  AccountForm}
 
    ro/run-on-mount?       true
-   ro/route               "invoices"})
+   ro/route               "invoices"}
+  (log/info "Got the extra included category prop:" (get props [:category/id #uuid "ffffffff-ffff-ffff-ffff-000000001000"]))
+  ;; this will log `{:category/label "Tools"}` iff we loaded the categories first
+  (report/render-layout this))
 
 (comment
   (comp/get-query InvoiceList-Row))
