@@ -37,7 +37,7 @@
   {ro/title               "Inventory Report"
    ro/source-attribute    :item/all-items
    ro/row-pk              item/id
-   ro/columns             [item/item-name category/label item/price item/in-stock]
+   ro/columns             [item/item-name category/label-uppercase item/price item/in-stock]
 
    ro/row-visible?        (fn [filter-parameters row] (let [{::keys [category]} filter-parameters
                                                             row-category (get row :category/label)]
