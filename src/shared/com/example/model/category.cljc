@@ -36,5 +36,5 @@
                    #?(:clj
                       {:category/all-categories (queries/get-all-categories env query-params)}))})
 
-(def attributes [id label label-uppercase all-categories])
+(def attributes [id label all-categories])
 
